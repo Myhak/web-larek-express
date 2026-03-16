@@ -45,9 +45,6 @@ const connectWithRetry = async (retries = 15, delay = 2000) => {
   return false;
 };
 
-// Запускаем сервер сразу, MongoDB подключаем асинхронно
-const PORT = process.env.PORT || 3000;
-
 // Middleware
 app.use(cors({
   origin: process.env.ORIGIN_ALLOW || 'http://localhost:5173',
@@ -88,8 +85,16 @@ app.use('*', (_req: Request, res: Response) => {
 // Подключение middleware для обработки ошибок
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+// Запускаем сервер СРАЗУ
+const PORT: number = parseInt(process.env.PORT || '3000', 10);
+
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`MongoDB connection status: ${mongoose.connection.readyState}`);
+});
+
+server.on('error', (err) => {
+  console.error('Server failed to start:', err);
 });
 
 // Подключаемся к MongoDB в фоновом режиме
