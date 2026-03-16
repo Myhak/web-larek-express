@@ -63,7 +63,8 @@ const orderBodyValidation = celebrate({
 // POST /order - создать заказ
 router.post('/', orderBodyValidation, async (req: Request, res: Response, next) => {
   try {
-    if (!mongoose.connection.readyState) {
+    // Проверяем подключение (1 = connected)
+    if (mongoose.connection.readyState !== 1) {
       throw new Error('MongoDB not connected');
     }
     const {
@@ -122,7 +123,8 @@ router.post('/', orderBodyValidation, async (req: Request, res: Response, next) 
 // GET /order - получить все заказы
 router.get('/', async (_req: Request, res: Response, next) => {
   try {
-    if (!mongoose.connection.readyState) {
+    // Проверяем подключение (1 = connected)
+    if (mongoose.connection.readyState !== 1) {
       throw new Error('MongoDB not connected');
     }
     const orders = await Order.find().populate('items', 'title price');
@@ -142,7 +144,8 @@ router.get('/', async (_req: Request, res: Response, next) => {
 // GET /order/:id - получить заказ по ID
 router.get('/:id', idValidation, async (req: Request, res: Response, next) => {
   try {
-    if (!mongoose.connection.readyState) {
+    // Проверяем подключение (1 = connected)
+    if (mongoose.connection.readyState !== 1) {
       throw new Error('MongoDB not connected');
     }
     const order = await Order.findById(req.params.id).populate('items', 'title price');

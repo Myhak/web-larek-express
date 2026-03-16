@@ -26,7 +26,7 @@ const connectWithRetry = async (retries = 5, delay = 2000) => {
         serverSelectionTimeoutMS: 5000,
       });
       console.log('Connected to MongoDB');
-      return;
+      return true;
     } catch (err) {
       attempt += 1;
       console.error(`MongoDB connection attempt ${attempt} failed:`, err);
@@ -37,9 +37,21 @@ const connectWithRetry = async (retries = 5, delay = 2000) => {
     }
   }
   console.error('Failed to connect to MongoDB after all retries');
+  return false;
 };
 
-connectWithRetry();
+// Ждём подключения перед запуском сервера
+connectWithRetry().then((connected) => {
+  if (!connected) {
+    console.error('Starting server without database connection');
+  }
+
+  const PORT = process.env.PORT || 3000;
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+});
 
 // Middleware
 app.use(cors({
@@ -80,11 +92,5 @@ app.use('*', (_req: Request, res: Response) => {
 
 // Подключение middleware для обработки ошибок
 app.use(errorHandler);
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
 
 export default app;
