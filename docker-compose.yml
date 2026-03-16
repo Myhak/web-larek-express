@@ -24,6 +24,8 @@ services:
       context: backend
     env_file:
       - backend/.env
+    environment:
+      - DB_ADDRESS=mongodb://root:example@mongo:27017/weblarek
     volumes:
       - ./backend/src:/app/src
       - public:/app/src/public
