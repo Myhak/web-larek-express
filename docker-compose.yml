@@ -17,6 +17,12 @@ services:
       - db:/data/db
     networks:
       - internal
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   backend:
     restart: always
@@ -34,7 +40,8 @@ services:
     networks:
       - internal
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
 
   server:
     build:

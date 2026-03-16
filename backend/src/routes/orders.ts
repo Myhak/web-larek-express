@@ -63,6 +63,9 @@ const orderBodyValidation = celebrate({
 // POST /order - создать заказ
 router.post('/', orderBodyValidation, async (req: Request, res: Response, next) => {
   try {
+    if (!mongoose.connection.readyState) {
+      throw new Error('MongoDB not connected');
+    }
     const {
       payment, email, phone, address, total, items,
     } = req.body;
@@ -108,6 +111,8 @@ router.post('/', orderBodyValidation, async (req: Request, res: Response, next) 
   } catch (error) {
     if (error instanceof BadRequestError) {
       next(error);
+    } else if (error instanceof Error && error.message === 'MongoDB not connected') {
+      next(new InternalServerError('База данных недоступна'));
     } else {
       next(new InternalServerError('Ошибка при создании заказа'));
     }
@@ -117,19 +122,29 @@ router.post('/', orderBodyValidation, async (req: Request, res: Response, next) 
 // GET /order - получить все заказы
 router.get('/', async (_req: Request, res: Response, next) => {
   try {
+    if (!mongoose.connection.readyState) {
+      throw new Error('MongoDB not connected');
+    }
     const orders = await Order.find().populate('items', 'title price');
     res.json({
       items: orders,
       total: orders.length,
     });
   } catch (error) {
-    next(new InternalServerError('Ошибка при получении заказов'));
+    if (error instanceof Error && error.message === 'MongoDB not connected') {
+      next(new InternalServerError('База данных недоступна'));
+    } else {
+      next(new InternalServerError('Ошибка при получении заказов'));
+    }
   }
 });
 
 // GET /order/:id - получить заказ по ID
 router.get('/:id', idValidation, async (req: Request, res: Response, next) => {
   try {
+    if (!mongoose.connection.readyState) {
+      throw new Error('MongoDB not connected');
+    }
     const order = await Order.findById(req.params.id).populate('items', 'title price');
 
     if (!order) {
@@ -140,6 +155,8 @@ router.get('/:id', idValidation, async (req: Request, res: Response, next) => {
   } catch (error) {
     if (error instanceof BadRequestError) {
       next(error);
+    } else if (error instanceof Error && error.message === 'MongoDB not connected') {
+      next(new InternalServerError('База данных недоступна'));
     } else if (error instanceof mongoose.Error.CastError) {
       next(new BadRequestError('Передан некорректный ID заказа'));
     } else {

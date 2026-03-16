@@ -11,13 +11,20 @@ import { moveFileToImages, deleteFile } from './upload';
 // GET /product - получить все товары
 export const getProducts = async (_req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!mongoose.connection.readyState) {
+      throw new Error('MongoDB not connected');
+    }
     const products = await Product.find();
     res.json({
       items: products,
       total: products.length,
     });
   } catch (error) {
-    next(new InternalServerError('Ошибка при получении товаров'));
+    if (error instanceof Error && error.message === 'MongoDB not connected') {
+      next(new InternalServerError('База данных недоступна'));
+    } else {
+      next(new InternalServerError('Ошибка при получении товаров'));
+    }
   }
 };
 
