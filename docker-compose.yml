@@ -30,6 +30,7 @@ services:
       context: backend
     environment:
       - DB_ADDRESS=mongodb://root:example@mongo:27017/weblarek
+      - PORT=3000
     volumes:
       - ./backend/src:/app/src
       - ./backend/public:/app/public
@@ -40,6 +41,12 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
 
   server:
     build:
