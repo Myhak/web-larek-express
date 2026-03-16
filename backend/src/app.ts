@@ -40,18 +40,8 @@ const connectWithRetry = async (retries = 5, delay = 2000) => {
   return false;
 };
 
-// Ждём подключения перед запуском сервера
-connectWithRetry().then((connected) => {
-  if (!connected) {
-    console.error('Starting server without database connection');
-  }
-
-  const PORT = process.env.PORT || 3000;
-
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-});
+// Запускаем сервер сразу, MongoDB подключаем асинхронно
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
@@ -92,5 +82,12 @@ app.use('*', (_req: Request, res: Response) => {
 
 // Подключение middleware для обработки ошибок
 app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+// Подключаемся к MongoDB в фоновом режиме
+connectWithRetry();
 
 export default app;
