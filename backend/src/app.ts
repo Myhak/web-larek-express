@@ -15,21 +15,26 @@ dotenv.config();
 const app = express();
 
 // Подключение к MongoDB с таймаутом и повторными попытками
+// DB_ADDRESS берётся из .env файла (для Docker: mongodb://root:example@mongo:27017/weblarek)
 const dbAddress = process.env.DB_ADDRESS || 'mongodb://127.0.0.1:27017/weblarek';
 
-const connectWithRetry = async (retries = 10, delay = 1000) => {
+console.log('Connecting to MongoDB:', dbAddress);
+
+const connectWithRetry = async (retries = 15, delay = 2000) => {
   let attempt = 0;
   while (attempt < retries) {
     try {
       // eslint-disable-next-line no-await-in-loop
       await mongoose.connect(dbAddress, {
-        serverSelectionTimeoutMS: 3000,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 5000,
       });
-      console.log('Connected to MongoDB');
+      console.log('Connected to MongoDB successfully');
       return true;
     } catch (err) {
       attempt += 1;
-      console.error(`MongoDB connection attempt ${attempt} failed:`, err);
+      console.error(`MongoDB connection attempt ${attempt}/${retries} failed:`, (err as Error).message);
       if (attempt < retries) {
         // eslint-disable-next-line no-promise-executor-return, no-await-in-loop
         await new Promise<void>((resolve) => { setTimeout(resolve, delay); });
