@@ -28,7 +28,7 @@ services:
       - DB_ADDRESS=mongodb://root:example@mongo:27017/weblarek
     volumes:
       - ./backend/src:/app/src
-      - public:/app/src/public
+      - ./backend/public:/app/public
     ports:
       - 3000:3000
     networks:
@@ -43,7 +43,7 @@ services:
       - 80:80
     volumes:
       - frontend:/var/app
-      - public:/var/public
+      - ./backend/public:/var/public
     depends_on:
       - frontend
       - backend
@@ -52,7 +52,6 @@ services:
 
 volumes:
   frontend:
-  public:
   db:
 
 networks:

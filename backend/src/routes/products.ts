@@ -106,8 +106,8 @@ router.get('/', getProducts);
 // GET /product/:id - получить товар по ID
 router.get('/:id', idValidation, getProductById);
 
-// POST /product - создать товар (требуется авторизация)
-router.post('/', auth, createProductValidation, createProduct);
+// POST /product - создать товар
+router.post('/', createProductValidation, createProduct);
 
 // PATCH /product/:id - обновить товар (требуется авторизация)
 router.patch('/:id', auth, idValidation, productBodyValidation, updateProduct);

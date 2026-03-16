@@ -1,10 +1,22 @@
 import { ErrorRequestHandler } from 'express';
+import { isCelebrateError } from 'celebrate';
 import BadRequestError from '../errors/BadRequestError';
 import ConflictError from '../errors/ConflictError';
 import InternalServerError from '../errors/InternalServerError';
 import UnauthorizedError from '../errors/UnauthorizedError';
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  // Обработка ошибок валидации celebrate
+  if (isCelebrateError(err)) {
+    const messages: string[] = [];
+    err.details.forEach((value) => {
+      messages.push(value.message);
+    });
+    return res.status(400).json({
+      message: messages.join(', '),
+    });
+  }
+
   // Если ошибка уже является экземпляром нашей кастомной ошибки
   if (
     err instanceof BadRequestError
