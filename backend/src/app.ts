@@ -17,13 +17,13 @@ const app = express();
 // Подключение к MongoDB с таймаутом и повторными попытками
 const dbAddress = process.env.DB_ADDRESS || 'mongodb://127.0.0.1:27017/weblarek';
 
-const connectWithRetry = async (retries = 5, delay = 2000) => {
+const connectWithRetry = async (retries = 10, delay = 1000) => {
   let attempt = 0;
   while (attempt < retries) {
     try {
       // eslint-disable-next-line no-await-in-loop
       await mongoose.connect(dbAddress, {
-        serverSelectionTimeoutMS: 5000,
+        serverSelectionTimeoutMS: 3000,
       });
       console.log('Connected to MongoDB');
       return true;

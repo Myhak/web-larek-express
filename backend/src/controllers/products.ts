@@ -11,21 +11,13 @@ import { moveFileToImages, deleteFile } from './upload';
 // GET /product - получить все товары
 export const getProducts = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    // Проверяем подключение (1 = connected)
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('MongoDB not connected');
-    }
     const products = await Product.find();
     res.json({
       items: products,
       total: products.length,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === 'MongoDB not connected') {
-      next(new InternalServerError('База данных недоступна'));
-    } else {
-      next(new InternalServerError('Ошибка при получении товаров'));
-    }
+    next(new InternalServerError('Ошибка при получении товаров'));
   }
 };
 
@@ -53,10 +45,6 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
 // POST /product - создать товар
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Проверяем подключение (1 = connected)
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('MongoDB not connected');
-    }
     const {
       description, image, title, category, price,
     } = req.body;
@@ -83,9 +71,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
     const savedProduct = await newProduct.save();
     res.status(201).json(savedProduct);
   } catch (error) {
-    if (error instanceof Error && error.message === 'MongoDB not connected') {
-      next(new InternalServerError('База данных недоступна'));
-    } else if (error instanceof mongoose.Error.ValidationError) {
+    if (error instanceof mongoose.Error.ValidationError) {
       next(new BadRequestError('Ошибка валидации данных при создании товара'));
     } else if ((error as any).code === 11000) {
       next(new ConflictError('Товар с таким названием уже существует'));
@@ -98,10 +84,6 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 // PATCH /product/:id - обновить товар
 export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Проверяем подключение (1 = connected)
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('MongoDB not connected');
-    }
     const { id } = req.params;
     const {
       title, image, category, description, price,
@@ -151,9 +133,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 
     res.json(updatedProduct);
   } catch (error) {
-    if (error instanceof Error && error.message === 'MongoDB not connected') {
-      next(new InternalServerError('База данных недоступна'));
-    } else if (
+    if (
       error instanceof BadRequestError
       || error instanceof NotFoundError
       || error instanceof ConflictError
@@ -172,10 +152,6 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 // DELETE /product/:id - удалить товар
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Проверяем подключение (1 = connected)
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('MongoDB not connected');
-    }
     const product = await Product.findByIdAndDelete(req.params.id);
 
     if (!product) {
@@ -184,9 +160,7 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
 
     res.json(product);
   } catch (error) {
-    if (error instanceof Error && error.message === 'MongoDB not connected') {
-      next(new InternalServerError('База данных недоступна'));
-    } else if (error instanceof NotFoundError) {
+    if (error instanceof NotFoundError) {
       next(error);
     } else if (error instanceof mongoose.Error.CastError) {
       next(new BadRequestError('Передан некорректный ID товара'));
