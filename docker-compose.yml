@@ -17,22 +17,36 @@ services:
       - db:/data/db
     networks:
       - internal
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   backend:
     restart: always
     build:
       context: backend
-    env_file:
-      - backend/.env
+    environment:
+      - DB_ADDRESS=mongodb://root:example@mongo:27017/weblarek
+      - PORT=3000
     volumes:
       - ./backend/src:/app/src
-      - public:/app/src/public
+      - ./backend/public:/app/public
     ports:
       - 3000:3000
     networks:
       - internal
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
 
   server:
     build:
@@ -41,7 +55,7 @@ services:
       - 80:80
     volumes:
       - frontend:/var/app
-      - public:/var/public
+      - ./backend/public:/var/public
     depends_on:
       - frontend
       - backend
@@ -50,7 +64,6 @@ services:
 
 volumes:
   frontend:
-  public:
   db:
 
 networks:
